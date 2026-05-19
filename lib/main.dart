@@ -47,7 +47,8 @@ class _GreenhousePageState extends State<GreenhousePage> {
 
   Future<void> _connectMqtt() async {
     _client = MqttServerClient(mqttServer, 'greenhouse-app');
-    _client.port = 1883;
+    _client.port = 9001;
+    _client.useWebSocket = true;
     _client.connectionMessage = MqttConnectMessage()
       .authenticateAs(mqttUser, mqttPassword)
       .startClean();

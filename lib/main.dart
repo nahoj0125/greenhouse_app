@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
+import 'secrets.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Greenhouse',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 40, 166, 45)),
       ),
       home: const GreenhousePage(),
     );
@@ -32,6 +35,37 @@ class _GreenhousePageState extends State<GreenhousePage> {
   int soilMoisture = 0;
   bool ledState = false;
 
+  late MqttServerClient _client;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectMqtt();
+  }
+
+  bool connectionStatus = false;
+
+  Future<void> _connectMqtt() async {
+    _client = MqttServerClient(mqttServer, 'greenhouse-app');
+    _client.port = 1883;
+    _client.connectionMessage = MqttConnectMessage()
+      .authenticateAs(mqttUser, mqttPassword)
+      .startClean();
+    try {
+      await _client.connect(mqttUser, mqttPassword);
+      setState(() => connectionStatus = true);
+      _client.subscribe('lnu/iot/jp223/sensor', MqttQos.atLeastOnce);
+    } catch (error) {
+      setState(() => connectionStatus = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _client.disconnect();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,6 +73,13 @@ class _GreenhousePageState extends State<GreenhousePage> {
         title: const Text('Greenhouse'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+        actions: [
+          Icon(
+            connectionStatus ? Icons.wifi : Icons.wifi_off,
+            color: connectionStatus ? Colors.greenAccent : Colors.redAccent
+          ),
+          const SizedBox(width: 16),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

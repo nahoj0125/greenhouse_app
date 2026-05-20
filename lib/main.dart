@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'secrets.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -43,21 +44,43 @@ class _GreenhousePageState extends State<GreenhousePage> {
     _connectMqtt();
   }
 
-  bool connectionStatus = false;
+  bool _connectionStatus = false;
 
   Future<void> _connectMqtt() async {
-    _client = MqttServerClient(mqttServer, 'greenhouse-app');
+    _client = MqttServerClient('ws://$mqttServer', 'greenhouse-app');
     _client.port = 9001;
     _client.useWebSocket = true;
+    _client.keepAlivePeriod = 60;
     _client.connectionMessage = MqttConnectMessage()
       .authenticateAs(mqttUser, mqttPassword)
       .startClean();
     try {
       await _client.connect(mqttUser, mqttPassword);
-      setState(() => connectionStatus = true);
-      _client.subscribe('lnu/iot/jp223/sensor', MqttQos.atLeastOnce);
+      setState(() => _connectionStatus = true);
+      _client.subscribe('$mqttTopic/sensor', MqttQos.atLeastOnce);
+      _client.updates!.listen(_onMessage);
     } catch (error) {
-      setState(() => connectionStatus = false);
+      setState(() => _connectionStatus = false);
+    }
+  }
+
+  void _onMessage(List<MqttReceivedMessage<MqttMessage>> messages) {
+    final msg = messages[0].payload as MqttPublishMessage;
+    final payload = MqttPublishPayload.bytesToStringAsString(msg.payload.message);
+
+    try {
+      final data = jsonDecode(payload);
+      if (data['temperature'] == null || data['humidity'] == null || data['soil_moisture'] == null) {
+        return;
+      }
+
+      setState(() {
+        temperature = (data['temperature'] as num).toDouble();
+        humidity = (data['humidity'] as num).toDouble();
+        soilMoisture = (data['soil_moisture'] as num).toInt();
+      });
+    } catch (error) {
+      setState(() => _connectionStatus = false);
     }
   }
 
@@ -76,8 +99,8 @@ class _GreenhousePageState extends State<GreenhousePage> {
         foregroundColor: Colors.white,
         actions: [
           Icon(
-            connectionStatus ? Icons.wifi : Icons.wifi_off,
-            color: connectionStatus ? Colors.greenAccent : Colors.redAccent
+            _connectionStatus ? Icons.wifi : Icons.wifi_off,
+            color: _connectionStatus ? Colors.greenAccent : Colors.redAccent
           ),
           const SizedBox(width: 16),
         ],

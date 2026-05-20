@@ -37,6 +37,7 @@ class _GreenhousePageState extends State<GreenhousePage> {
   bool ledState = false;
   bool _hasData = false;
   bool _connectionStatus = false;
+  bool _isReconnecting = false;
 
   late MqttServerClient _client;
 
@@ -54,6 +55,19 @@ class _GreenhousePageState extends State<GreenhousePage> {
     _client.connectionMessage = MqttConnectMessage()
       .authenticateAs(mqttUser, mqttPassword)
       .startClean();
+
+    _client.autoReconnect = true;
+    _client.onAutoReconnect = () {
+      setState(() => _connectionStatus = false);
+      _connectionStatus = false;
+      _isReconnecting = true;
+    };
+    _client.onAutoReconnected = () {
+      setState(() => _connectionStatus = true);
+      _connectionStatus = true;
+      _isReconnecting = false;
+    };
+
     try {
       await _client.connect(mqttUser, mqttPassword);
       setState(() => _connectionStatus = true);
@@ -106,6 +120,14 @@ class _GreenhousePageState extends State<GreenhousePage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
+          if (_isReconnecting) const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
+            ),
+          ),
           Icon(
             _connectionStatus ? Icons.wifi : Icons.wifi_off,
             color: _connectionStatus ? Colors.greenAccent : Colors.redAccent

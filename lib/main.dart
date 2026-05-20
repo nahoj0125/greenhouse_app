@@ -4,6 +4,8 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 import 'secrets.dart';
 import 'dart:convert';
 
+import 'widgets/sensor_card.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -139,11 +141,11 @@ class _GreenhousePageState extends State<GreenhousePage> {
         child: _hasData ? Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SensorCard(label: 'Temperature', value: '${temperature.toStringAsFixed(1)} °C'),
+            SensorCard(label: 'Temperature', value: '${temperature.toStringAsFixed(1)} °C'),
             const SizedBox(height: 12),
-            _SensorCard(label: 'Humidity', value: '${humidity.toStringAsFixed(1)} %'),
+            SensorCard(label: 'Humidity', value: '${humidity.toStringAsFixed(1)} %'),
             const SizedBox(height: 12),
-            _SensorCard(label: 'Soil Moisture', value: '$soilMoisture %'),
+            SensorCard(label: 'Soil Moisture', value: '$soilMoisture %'),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -174,19 +176,3 @@ class _GreenhousePageState extends State<GreenhousePage> {
   }
 }
 
-class _SensorCard extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _SensorCard({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        title: Text(label),
-        trailing: Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
-}

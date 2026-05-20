@@ -35,6 +35,8 @@ class _GreenhousePageState extends State<GreenhousePage> {
   double humidity = 0;
   int soilMoisture = 0;
   bool ledState = false;
+  bool _hasData = false;
+  bool _connectionStatus = false;
 
   late MqttServerClient _client;
 
@@ -43,8 +45,6 @@ class _GreenhousePageState extends State<GreenhousePage> {
     super.initState();
     _connectMqtt();
   }
-
-  bool _connectionStatus = false;
 
   Future<void> _connectMqtt() async {
     _client = MqttServerClient('ws://$mqttServer', 'greenhouse-app');
@@ -64,6 +64,7 @@ class _GreenhousePageState extends State<GreenhousePage> {
     }
   }
 
+
   void _onMessage(List<MqttReceivedMessage<MqttMessage>> messages) {
     final msg = messages[0].payload as MqttPublishMessage;
     final payload = MqttPublishPayload.bytesToStringAsString(msg.payload.message);
@@ -78,6 +79,7 @@ class _GreenhousePageState extends State<GreenhousePage> {
         temperature = (data['temperature'] as num).toDouble();
         humidity = (data['humidity'] as num).toDouble();
         soilMoisture = (data['soil_moisture'] as num).toInt();
+        _hasData = true;
       });
     } catch (error) {
       setState(() => _connectionStatus = false);
@@ -107,7 +109,7 @@ class _GreenhousePageState extends State<GreenhousePage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
+        child: _hasData ? Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _SensorCard(label: 'Temperature', value: '${temperature.toStringAsFixed(1)} °C'),
@@ -127,6 +129,15 @@ class _GreenhousePageState extends State<GreenhousePage> {
               ],
             ),
           ],
+        ) : const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Waiting for sensor data...'),
+            ],
+          ),
         ),
       ),
     );

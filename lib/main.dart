@@ -57,16 +57,15 @@ class _GreenhousePageState extends State<GreenhousePage> {
       .startClean();
 
     _client.autoReconnect = true;
-    _client.onAutoReconnect = () {
-      setState(() => _connectionStatus = false);
+    _client.onAutoReconnect = () => setState(() {
       _connectionStatus = false;
       _isReconnecting = true;
-    };
-    _client.onAutoReconnected = () {
-      setState(() => _connectionStatus = true);
+    });
+    
+    _client.onAutoReconnected = () => setState(() {
       _connectionStatus = true;
       _isReconnecting = false;
-    };
+    });
 
     try {
       await _client.connect(mqttUser, mqttPassword);

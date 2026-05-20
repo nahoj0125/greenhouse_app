@@ -86,6 +86,12 @@ class _GreenhousePageState extends State<GreenhousePage> {
     }
   }
 
+  void _publishLed(bool state) {
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(state ? 'true' : 'false');
+    _client.publishMessage('$mqttTopic/command/led', MqttQos.atLeastOnce, builder.payload!);
+  }
+
   @override
   void dispose() {
     _client.disconnect();
@@ -124,7 +130,10 @@ class _GreenhousePageState extends State<GreenhousePage> {
                 const Text('LED', style: TextStyle(fontSize: 18)),
                 Switch(
                   value: ledState,
-                  onChanged: (val) => setState(() => ledState = val),
+                  onChanged: (val) {
+                    setState(() => ledState = val);
+                    _publishLed(val);
+                  },
                 ),
               ],
             ),

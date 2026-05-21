@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pages/greenhouse_page.dart';
+import 'colors.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -9,7 +10,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Greenhouse',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 40, 166, 45)),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
       ),
       home: const GreenhousePage(),
     );

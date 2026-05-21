@@ -3,6 +3,8 @@ import 'dart:convert';
 import '../services/mqtt_service.dart';
 import '../widgets/sensor_card.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import '../colors.dart';
+
 class GreenhousePage extends StatefulWidget {
   const GreenhousePage({super.key});
 
@@ -92,12 +94,32 @@ class _GreenhousePageState extends State<GreenhousePage> {
         child: _hasData ? Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SensorCard(label: 'Temperature', value: '${temperature.toStringAsFixed(1)} °C'),
+            SensorCard(
+              label: 'Temperature',
+              value: '${temperature.toStringAsFixed(1)} °C',
+              background: AppColors.tempBackground,
+              border: AppColors.tempBorder,
+              textColor: AppColors.tempText,
+              icon: Icons.thermostat,
+            ),
             const SizedBox(height: 12),
-            SensorCard(label: 'Humidity', value: '${humidity.toStringAsFixed(1)} %'),
+            SensorCard(
+              label: 'Humidity',
+              value: '${humidity.toStringAsFixed(1)} %',
+              background: AppColors.humidityBackground,
+              border: AppColors.humidityBorder,
+              textColor: AppColors.humidityText,
+              icon: Icons.water_drop,
+            ),
             const SizedBox(height: 12),
-            SensorCard(label: 'Soil Moisture', value: '$soilMoisture %'),
-            const SizedBox(height: 24),
+            SensorCard(
+              label: 'Soil moisture',
+              value: '$soilMoisture %',
+              background: AppColors.soilBackground,
+              border: AppColors.soilBorder,
+              textColor: AppColors.soilText,
+              icon: Icons.grass,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

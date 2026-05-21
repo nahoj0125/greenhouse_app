@@ -1,10 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
-import 'secrets.dart';
 import 'dart:convert';
 
 import 'widgets/sensor_card.dart';
+import 'services/mqtt_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -40,44 +41,21 @@ class _GreenhousePageState extends State<GreenhousePage> {
   bool _hasData = false;
   bool _connectionStatus = false;
   bool _isReconnecting = false;
+  final MqttService _mqttService = MqttService();
 
-  late MqttServerClient _client;
+
 
   @override
   void initState() {
     super.initState();
-    _connectMqtt();
+    _mqttService.connect(
+      onConnected: () => setState (() { _connectionStatus = true; _isReconnecting = false; }),
+      onDisconnected: () => setState(() => _connectionStatus = false),
+      onReconnecting: () => setState(() { _connectionStatus = false; _isReconnecting = true; }),
+      onMessage: _onMessage,
+    );
   }
 
-  Future<void> _connectMqtt() async {
-    _client = MqttServerClient('ws://$mqttServer', 'greenhouse-app');
-    _client.port = 9001;
-    _client.useWebSocket = true;
-    _client.keepAlivePeriod = 60;
-    _client.connectionMessage = MqttConnectMessage()
-      .authenticateAs(mqttUser, mqttPassword)
-      .startClean();
-
-    _client.autoReconnect = true;
-    _client.onAutoReconnect = () => setState(() {
-      _connectionStatus = false;
-      _isReconnecting = true;
-    });
-    
-    _client.onAutoReconnected = () => setState(() {
-      _connectionStatus = true;
-      _isReconnecting = false;
-    });
-
-    try {
-      await _client.connect(mqttUser, mqttPassword);
-      setState(() => _connectionStatus = true);
-      _client.subscribe('$mqttTopic/sensor', MqttQos.atLeastOnce);
-      _client.updates!.listen(_onMessage);
-    } catch (error) {
-      setState(() => _connectionStatus = false);
-    }
-  }
 
 
   void _onMessage(List<MqttReceivedMessage<MqttMessage>> messages) {
@@ -101,15 +79,10 @@ class _GreenhousePageState extends State<GreenhousePage> {
     }
   }
 
-  void _publishLed(bool state) {
-    final builder = MqttClientPayloadBuilder();
-    builder.addString(state ? 'true' : 'false');
-    _client.publishMessage('$mqttTopic/command/led', MqttQos.atLeastOnce, builder.payload!);
-  }
 
   @override
   void dispose() {
-    _client.disconnect();
+    _mqttService.disconnect();
     super.dispose();
   }
 
@@ -155,7 +128,7 @@ class _GreenhousePageState extends State<GreenhousePage> {
                   value: ledState,
                   onChanged: (val) {
                     setState(() => ledState = val);
-                    _publishLed(val);
+                    _mqttService.publishLed(val);
                   },
                 ),
               ],

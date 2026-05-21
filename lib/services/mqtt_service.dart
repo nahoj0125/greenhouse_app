@@ -33,7 +33,7 @@ class MqttService {
     }
   }
 
-   void publishLed(bool state) {
+  void publishLed(bool state) {
     final builder = MqttClientPayloadBuilder();
     builder.addString(state ? 'true' : 'false');
     _client.publishMessage('$mqttTopic/command/led', MqttQos.atLeastOnce, builder.payload!);

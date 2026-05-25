@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import '../secrets.dart';
@@ -34,9 +35,14 @@ class MqttService {
   }
 
   void publishLed(bool state) {
-    final builder = MqttClientPayloadBuilder();
-    builder.addString(state ? 'true' : 'false');
-    _client.publishMessage('$mqttTopic/command/led', MqttQos.atLeastOnce, builder.payload!);
+    try {
+
+      final builder = MqttClientPayloadBuilder();
+      builder.addString(state ? 'true' : 'false');
+      _client.publishMessage('$mqttTopic/command/led', MqttQos.atLeastOnce, builder.payload!);
+    } catch (error) {
+      debugPrint('Failed to publish LED: $error');
+    }
   }
 
   void disconnect() {

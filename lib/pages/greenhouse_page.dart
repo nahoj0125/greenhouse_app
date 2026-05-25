@@ -23,6 +23,7 @@ class _GreenhousePageState extends State<GreenhousePage> {
   bool _hasData = false;
   bool _connectionStatus = false;
   bool _isReconnecting = false;
+  DateTime? _lastLedPublished;
 
 
   final MqttService _mqttService = MqttService();
@@ -59,6 +60,12 @@ class _GreenhousePageState extends State<GreenhousePage> {
   }
 
   void _publishLed(bool state) {
+    final now = DateTime.now();
+    if (_lastLedPublished != null && now.difference(_lastLedPublished!) < const Duration(seconds: 1)) {
+      setState(() => ledState = !state);
+      return;
+    }
+    _lastLedPublished = now;
     _mqttService.publishLed(state);
   }
 

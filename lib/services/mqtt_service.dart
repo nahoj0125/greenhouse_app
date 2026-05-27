@@ -15,6 +15,7 @@ class MqttService {
     _client = MqttServerClient('ws://$mqttServer', 'greenhouse-app');
     _client.port = 9001;
     _client.useWebSocket = true;
+    _client.websocketProtocols = ['mqtt'];
     _client.keepAlivePeriod = 60;
     _client.connectionMessage = MqttConnectMessage()
         .authenticateAs(mqttUser, mqttPassword)

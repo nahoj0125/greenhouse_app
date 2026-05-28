@@ -9,6 +9,9 @@
 - Real-time updates without page refresh
 - Automatic reconnection if connection is lost
 
+## Demo
+[Link to demo on youtube](https://youtu.be/hZvlRpq07q8)
+
 ## Prerequisites
 - Flutter SDK installed
 - Android Studio with an emulator set up, or a physical Android device
